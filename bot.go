@@ -10,6 +10,8 @@ import (
 	"github.com/bwmarrin/discordgo"
 )
 
+var suggestionVotes map[string]int
+
 func main() {
 	fmt.Println("hello world")
 
