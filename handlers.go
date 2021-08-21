@@ -16,3 +16,7 @@ func inputHandler(s *discordgo.Session, m *discordgo.MessageCreate) {
 		return
 	}
 }
+
+func reactionsHandler(s *discordgo.Session, m *discordgo.MessageCreate) {
+
+}

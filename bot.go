@@ -2,19 +2,20 @@ package main
 
 import (
 	"fmt"
+	"log"
 	"os"
+	"os/signal"
+	"syscall"
 
 	"github.com/bwmarrin/discordgo"
 )
-
-var token string
 
 func main() {
 	fmt.Println("hello world")
 
 	token := os.Getenv("BOT_TOKEN")
 	if token == "" {
-		fmt.Println("No token provided. Please run: airhorn -t <bot token>")
+		fmt.Println("No token provided. Please set env variable BOT_TOKEN")
 		return
 	}
 
@@ -26,4 +27,21 @@ func main() {
 	}
 
 	b.AddHandler(inputHandler)
+	b.AddHandler(reactionsHandler)
+
+	// Open a websocket connection to Discord and begin listening.
+	err = b.Open()
+	if err != nil {
+		log.Panic("Could not connect to discord", err)
+		return
+	}
+
+	// Wait here until CTRL-C or other term signal is received.
+	log.Print("Discord bot is now running. Press CTRL-C to exit.")
+	sc := make(chan os.Signal, 1)
+	signal.Notify(sc, syscall.SIGINT, syscall.SIGTERM, os.Interrupt)
+	<-sc
+
+	// Cleanly close down the Discord session.
+	b.Close()
 }
