@@ -8,7 +8,7 @@ import (
 	"github.com/bwmarrin/discordgo"
 )
 
-func inputHandler(s *discordgo.Session, m *discordgo.MessageCreate) {
+func InputHandler(s *discordgo.Session, m *discordgo.MessageCreate) {
 	if m.Author.ID == s.State.User.ID {
 		return
 	}
@@ -44,9 +44,17 @@ func inputHandler(s *discordgo.Session, m *discordgo.MessageCreate) {
 				Value: "Add your reaction to suggestion to vote",
 			},
 		}
-
+	case "check":
+		s.ChannelMessageSend(m.ChannelID, "Letters for the day: "+seqOrdered)
 	case "suggest":
 		suggestionHandler(s, m, strings.Join(args[2:], " "))
+	case "submit":
+		if seqOrdered == "" {
+			s.ChannelMessageSend(m.ChannelID, "Sequence has not been generated. Enter !fridge generate")
+		} else {
+			fmt.Println(strings.Join(args[1:], " "))
+			submissionHandler(s, m, strings.Join(args[1:], " "), regSeqOrdered)
+		}
 	default:
 		s.ChannelMessageSend(m.ChannelID, "Invalid command. For a list of help topics, type !checkers help")
 
@@ -56,6 +64,48 @@ func inputHandler(s *discordgo.Session, m *discordgo.MessageCreate) {
 		Description: description,
 		Fields:      fields,
 	})
+}
+
+func submissionHandler(s *discordgo.Session, m *discordgo.MessageCreate, phrase string, seqReg string) {
+	c, err := s.Channel(m.ChannelID)
+	if err != nil {
+		s.ChannelMessageSend(m.ChannelID, "Bot error. Error getting channel.")
+		return
+	}
+
+	// Ensure that the command is not being sent from a dm
+	if c.Type == discordgo.ChannelTypeDM {
+		s.ChannelMessageSend(m.ChannelID, "Invalid channel. Cannot send invites from a DM")
+		return
+	}
+
+	if InSequence(seqReg, phrase) != true {
+		s.ChannelMessageSend(m.ChannelID, "Phrase "+phrase+" is Wrong letters!")
+		return
+	}
+
+	s.ChannelMessageSend(m.ChannelID, "Phrase "+phrase+" is Right letters!")
+
+	if _, ok := submissionVotes[phrase]; ok {
+		s.ChannelMessageSend(m.ChannelID, "Submission has already been submitted")
+		return
+	} else {
+		submissionVotes[phrase] = 0
+	}
+
+	submission, err := s.ChannelMessageSendEmbed(m.ChannelID, &discordgo.MessageEmbed{
+		Title:       fmt.Sprintf("Fridge Thought submission  %s", phrase),
+		Description: fmt.Sprintf("From: %s", m.Author.Username),
+		Footer: &discordgo.MessageEmbedFooter{
+			Text: fmt.Sprintf("%s:%s", "submission", phrase),
+		},
+	})
+	if err != nil {
+		log.Panicf("Bot was unable to send message to channel with ID: %s", m.ChannelID)
+	}
+	s.MessageReactionAdd(m.ChannelID, submission.ID, "❤️")
+	s.MessageReactionAdd(m.ChannelID, submission.ID, "💩")
+
 }
 
 func suggestionHandler(s *discordgo.Session, m *discordgo.MessageCreate, phrase string) {
@@ -92,7 +142,7 @@ func suggestionHandler(s *discordgo.Session, m *discordgo.MessageCreate, phrase 
 	s.MessageReactionAdd(m.ChannelID, suggestion.ID, "💩")
 }
 
-func reactionsHandler(s *discordgo.Session, r *discordgo.MessageReactionAdd) {
+func ReactionsHandler(s *discordgo.Session, r *discordgo.MessageReactionAdd) {
 	// Ignore all reactions created by the bot itself
 	if r.UserID == s.State.User.ID {
 		return
@@ -131,7 +181,10 @@ func reactionsHandler(s *discordgo.Session, r *discordgo.MessageReactionAdd) {
 	switch args[0] {
 	case "suggestion":
 		suggestionReactionHandler(s, r, m, args[1])
+	case "submission":
+		submissionReactionHandler(s, r, m, args[1])
 	}
+
 }
 
 func suggestionReactionHandler(s *discordgo.Session, r *discordgo.MessageReactionAdd, m *discordgo.Message, phrase string) {
@@ -140,5 +193,14 @@ func suggestionReactionHandler(s *discordgo.Session, r *discordgo.MessageReactio
 	}
 	if r.Emoji.Name == "💩" {
 		suggestionVotes[phrase] -= 1
+	}
+}
+
+func submissionReactionHandler(s *discordgo.Session, r *discordgo.MessageReactionAdd, m *discordgo.Message, phrase string) {
+	if r.Emoji.Name == "❤️" {
+		submissionVotes[phrase] += 1
+	}
+	if r.Emoji.Name == "💩" {
+		submissionVotes[phrase] -= 1
 	}
 }

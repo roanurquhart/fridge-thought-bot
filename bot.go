@@ -10,7 +10,9 @@ import (
 	"github.com/bwmarrin/discordgo"
 )
 
-var suggestionVotes map[string]int
+var submissionVotes map[string]int = make(map[string]int)
+var suggestionVotes map[string]int = make(map[string]int)
+var seqOrdered, regSeqOrdered = GenerateSequence()
 
 func main() {
 	fmt.Println("hello world")
@@ -28,8 +30,8 @@ func main() {
 		return
 	}
 
-	b.AddHandler(inputHandler)
-	b.AddHandler(reactionsHandler)
+	b.AddHandler(InputHandler)
+	b.AddHandler(ReactionsHandler)
 
 	// Open a websocket connection to Discord and begin listening.
 	err = b.Open()
