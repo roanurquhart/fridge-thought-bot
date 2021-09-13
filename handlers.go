@@ -37,24 +37,30 @@ func InputHandler(s *discordgo.Session, m *discordgo.MessageCreate) {
 		fields = []*discordgo.MessageEmbedField{
 			{
 				Name:  "Suggest",
-				Value: "`!checkers suggest <your phrase>`:  Command to suggest a phrase based on the prompt",
+				Value: "`!fridge suggest <your phrase>`:  Command to suggest a phrase based on the prompt",
 			},
 			{
 				Name:  "Vote",
 				Value: "Add your reaction to suggestion to vote",
 			},
+			{
+				Name:  "Check",
+				Value: "Check today's letters",
+			},
+			{
+				Name:  "Submit",
+				Value: "!fridge submit <your phrase>: Command to submit a phrase using the letters of the day",
+			},
 		}
 	case "check":
 		s.ChannelMessageSend(m.ChannelID, "Letters for the day: "+seqOrdered)
+		// s.Channel()
 	case "suggest":
 		suggestionHandler(s, m, strings.Join(args[2:], " "))
 	case "submit":
-		if seqOrdered == "" {
-			s.ChannelMessageSend(m.ChannelID, "Sequence has not been generated. Enter !fridge generate")
-		} else {
-			fmt.Println(strings.Join(args[1:], " "))
-			submissionHandler(s, m, strings.Join(args[1:], " "), regSeqOrdered)
-		}
+		fmt.Println(strings.Join(args[1:], " "))
+		submissionHandler(s, m, strings.Join(args[1:], " "), regSeqOrdered)
+		fmt.Printf("Channel ID %s", string(m.ChannelID))
 	default:
 		s.ChannelMessageSend(m.ChannelID, "Invalid command. For a list of help topics, type !checkers help")
 
