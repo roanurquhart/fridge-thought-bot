@@ -10,6 +10,10 @@ image2 = Image.new("RGB", (1920, 1080), (0,0,0)) # final image
 
 title_font = ImageFont.truetype('AlphaFridgeMagnets.ttf', 100)
 # image_editable.text((15,15), title_text, (237, 230, 211), font=title_font)
+# Filler used to determine upper and lower bounds of text
+# Currently it fills up the sample image too fast with a high resolution
+# Will have to either a
+# chunk out the sentance and go vertically / make multiple canvases
 fill = " Oj "
 x = 0
 w_fill, y = draw.textsize(fill, font=title_font)
