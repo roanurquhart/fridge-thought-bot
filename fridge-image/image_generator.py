@@ -18,6 +18,8 @@ make_color = lambda : (randint(50, 255), randint(50, 255), randint(50,255))
 
 gen_border = lambda color, shade: tuple(int((1-shade)*x) for x in color)
 fill = " Oj "
+w_fill, y_draw = draw.textsize(fill, font=title_font)
+
 
 
 def render_char(c, x_draw, x_paste, w_fill, y_draw, y_paste):
@@ -49,6 +51,8 @@ def render_word(word, x_draw, x_paste, y_draw, y_paste, max_width, max_height):
         y_paste += y_draw
         x_paste = randint(0, max_width / 2 - font_size)
     for c in (word + " "):
+        global w_full
+        global w_fill
         w_full = render_char(c, x_draw, x_paste, w_fill, y_draw, y_paste)
         w = w_full - w_fill
         x_draw += w_full
@@ -56,15 +60,17 @@ def render_word(word, x_draw, x_paste, y_draw, y_paste, max_width, max_height):
     print(x_draw, x_paste, y_draw, y_paste)
     return x_draw, x_paste, y_draw, y_paste
 
-x = 0
-w_fill, y_draw = draw.textsize(fill, font=title_font)
-x_draw, x_paste = font_size, 0
-y_paste = 0
-words = """dog is stupid my dude lol""".split()
+def render_image(words):
+    x = 0
+    w_fill, y_draw = draw.textsize(fill, font=title_font)
+    x_draw, x_paste = font_size, 0
+    y_paste = 0
 
-for word in words:
-    x_draw, x_paste, y_draw, y_paste = render_word(word, x_draw, x_paste, y_draw, y_paste, max_width, max_height)
-    # If the letter width of a word goes past the resolution, render the entire word on the next line
-    
-image2.show()
-# image.show()
+    for word in words.split():
+        x_draw, x_paste, y_draw, y_paste = render_word(word, x_draw, x_paste, y_draw, y_paste, max_width, max_height)
+        # If the letter width of a word goes past the resolution, render the entire word on the next line
+        
+    image2.save('fridge.jpeg')
+
+if __name__ == '__main__':
+    render_image("beep bop ;lkj ;lkj ;lkjdsaf lk;jsadf;lk ja")
