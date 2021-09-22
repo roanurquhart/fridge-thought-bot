@@ -2,15 +2,25 @@ from PIL import Image, ImageDraw, ImageFont
 from random import randint
 import string
 import time
+from pathlib import Path
+
+##TODO: If word is too long, doesn't print and gets stuck
+##TODO: 
 
 # Globals
-max_width = 600
-max_height = 600
-image = Image.new("RGB", (50000,1080), "#FFF") # scrap image
+max_width = 2400
+max_height = 1300
+
+# Image offset
+offset_x = 800
+offset_y = 300
+#RN it generates a scrach image and final image to paste the text into to get the colors
+#Maybe look into https://pillow.readthedocs.io/en/stable/reference/Image.html#PIL.Image.Image.transform
+image = Image.new("RGBA", (50000,1080), (255, 0, 0, 0)) # scrap image
 draw = ImageDraw.Draw(image)
-image2 = Image.new("RGB", (max_width, max_height), "#FFF") # final image
-font_size = 100
-stroke_width = int(font_size / 20)
+image2 = None # = Image.new("RGBA", (max_width, max_height), "#FAC") # final image
+font_size = 175 
+stroke_width = int(font_size / 15)
 
 title_font = ImageFont.truetype('AlphaFridgeMagnets.ttf', font_size)
 
@@ -23,6 +33,8 @@ w_fill, y_draw = draw.textsize(fill, font=title_font)
 
 
 def render_char(c, x_draw, x_paste, w_fill, y_draw, y_paste):
+    global image
+    global image2
     if randint(0,15) == 1:
         c = str(c.upper())
     letter_color = make_color()
@@ -34,22 +46,36 @@ def render_char(c, x_draw, x_paste, w_fill, y_draw, y_paste):
     draw.text((x_draw,0), fill+c, letter_color, font=title_font, stroke_width=stroke_width, stroke_fill=border_color)
 
     # Stroke width 4, minus 8 to [0] & [2]
-    iletter = image.crop((x_draw+w_fill - 2 * stroke_width, 0, x_draw+w_full - 2 * stroke_width, y_draw))
+    iletter = image.crop((x_draw+w_fill - 2 * stroke_width, 0, x_draw+w_full - 2 * stroke_width, y_draw)).convert("RGBA")
     image2.paste(iletter, (x_paste, y_paste))
+
     return w_full
 
 def render_word(word, x_draw, x_paste, y_draw, y_paste, max_width, max_height):
+    global image, image2, offset_x, offset_y
     w_word = draw.textsize(word, font=title_font, stroke_width=stroke_width)[0]
 
+    
+    if  w_word + stroke_width * (len(word) + stroke_width + font_size // 2) >= max_width:
+        word_1, word_2 = word[:len(word)//2], word[len(word)//2:]
+        x_draw, x_paste, y_draw, y_paste = render_word(word_1,x_draw, x_paste, y_draw, y_paste, max_width, max_height)
+
+        return render_word(word_2,x_draw, x_paste, y_draw, y_paste, max_width, max_height)
     # ... the + stroke_width * (len(word) + stroke_width) is magic number bullshit that happens to work very well
     # And the plus 2 is more magic bullshit that MAYBE accounts for the spaces before and after word
     # Extra 2 for chance of uppercase and extra 6 for randomly starting sentances
     # TODO: The 10 magic number works but is total bullshit and causes a lot of empty lines.
     # Maybe in the future work out a random number of spaces between words, and include them in the words
     # during generation
+    overflowed = False
     while x_paste + w_word + stroke_width * (len(word) + stroke_width + 10) >= max_width:
-        y_paste += y_draw
-        x_paste = randint(0, max_width / 2 - font_size)
+        overflowed = True
+        print(str(offset_x) + " is x offset" + str(max_width / 4 - font_size))
+        x_paste = randint(offset_x, max_width // 2)
+    
+    if overflowed:
+        y_paste += randint(y_draw, int(3 * y_draw))
+
     for c in (word + " "):
         global w_full
         global w_fill
@@ -61,16 +87,27 @@ def render_word(word, x_draw, x_paste, y_draw, y_paste, max_width, max_height):
     return x_draw, x_paste, y_draw, y_paste
 
 def render_image(words):
+    global image2, image, draw
+    image = Image.new("RGBA", (50000,1080), (255, 0, 0, 0)) # scrap image
+    draw = ImageDraw.Draw(image)
+    image3 = Image.open("refrigerator-door-closeup-high-res.png").convert("RGBA")
+    image2 = Image.new("RGBA", (2560, 1680), (255, 0, 0, 0)) # final image
+
     x = 0
     w_fill, y_draw = draw.textsize(fill, font=title_font)
-    x_draw, x_paste = font_size, 0
-    y_paste = 0
+    x_draw, x_paste = font_size, offset_x
+    y_paste = offset_y
 
     for word in words.split():
         x_draw, x_paste, y_draw, y_paste = render_word(word, x_draw, x_paste, y_draw, y_paste, max_width, max_height)
         # If the letter width of a word goes past the resolution, render the entire word on the next line
-        
-    image2.save('fridge.jpeg')
+    # if 
+    background = image3
+    foreground = image2
+
+    Image.alpha_composite(background, foreground).save("fridge.png")
+
+    # image2.save('fridge.png')
 
 if __name__ == '__main__':
     render_image("beep bop ;lkj ;lkj ;lkjdsaf lk;jsadf;lk ja")

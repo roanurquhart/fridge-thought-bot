@@ -1,7 +1,6 @@
 package main
 
 import (
-	"fmt"
 	"math/rand"
 	"regexp"
 	"sort"
@@ -54,6 +53,6 @@ func InSequence(seqReg string, input string) bool {
 	inputSorted := string(inputSplit)
 
 	matched, _ := regexp.Match(seqReg, []byte(inputSorted))
-	fmt.Println("%s %s d %s d %t", seqReg, input, inputSorted, matched)
+	// fmt.Println("%s %s d %s d %t", seqReg, input, inputSorted, matched)
 	return matched
 }
