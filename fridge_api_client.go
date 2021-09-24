@@ -13,6 +13,7 @@ func SubmitToAPI(submission string) {
 	//Encode the data
 	postBody, _ := json.Marshal(map[string]string{
 		"submission": submission,
+		"letters":    seqOrdered,
 	})
 	responseBody := bytes.NewBuffer(postBody)
 	//Leverage Go's HTTP Post function to make request

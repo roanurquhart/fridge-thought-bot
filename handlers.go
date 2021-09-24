@@ -118,7 +118,7 @@ func submissionHandler(s *discordgo.Session, m *discordgo.MessageCreate, phrase 
 	submission, err := s.ChannelMessageSendComplex(m.ChannelID, &discordgo.MessageSend{
 		Embed: &discordgo.MessageEmbed{
 			Title:       fmt.Sprintf("Fridge Thought submission  %s", phrase),
-			Description: fmt.Sprintf("From: %s", m.Author.Username),
+			Description: fmt.Sprintf("From: %s\nLetters: %s", m.Author.Username, seqOrdered),
 			Footer: &discordgo.MessageEmbedFooter{
 				Text: fmt.Sprintf("%s:%s", "submission", phrase),
 			},
