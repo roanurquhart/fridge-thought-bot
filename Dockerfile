@@ -228,11 +228,7 @@ CMD ["python3"]
 
 
 
-# RUN set -ex \
-# 	\
-# 	&& cd fridge_image \
-# 	&& pip install --trusted-host pypi.python.org -r requirements.txt \
-# 	&& set BOT_TOKEN $TOKEN \
-# 	&& FLASK_APP=image_rest_api.py FLASK_ENV=development flask run 
-
-
+RUN set -ex \
+	\
+	&& cd /code/fridge_image/ \
+	&& pip install --trusted-host pypi.python.org -r requirements.txt

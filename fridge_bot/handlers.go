@@ -106,7 +106,7 @@ func submissionHandler(s *discordgo.Session, m *discordgo.MessageCreate, phrase 
 	// 		Text: fmt.Sprintf("%s:%s", "submission", phrase),
 	// 	},
 	// })
-	file, _ := os.Open("fridge-image/fridge.png")
+	file, _ := os.Open("../fridge_image/fridge.png")
 
 	fridge_image := discordgo.File{
 		Name:        "test.png",
